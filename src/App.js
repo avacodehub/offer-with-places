@@ -4,7 +4,7 @@ import PlacesAutocomplete, {
   getLatLng
 } from "react-places-autocomplete";
 import { Formik, Field, Form, useField } from "formik";
-import { TextField, Button, Checkbox, Autocomplete, Container, Typography, Grid } from "@material-ui/core"
+import { TextField, Button, Checkbox, ButtonGroup, Container, Typography, Grid } from "@material-ui/core"
 import TextFormField from "./components/TextFormField"
 import * as yup from 'yup';
 
@@ -67,65 +67,77 @@ function App() {
 
   return (
     <Container>
-      <Grid item xs={5}>
-        <Typography variant="h3">Новый оффер</Typography>
-        <Formik
-          validateOnChange={true}
-          initialValues={initialValues}
+      <Typography variant="h3">Новый оффер</Typography>
+      <Grid
+        container
+        direction="row"
+        justify="space-around"
+        alignItems="flex-start"
+      >
+        <div className="form-left">
+          <Formik
+            validateOnChange={true}
+            initialValues={initialValues}
 
-          validationSchema={validationSchema}
+            validationSchema={validationSchema}
 
-          onSubmit={(data, { setSubmitting }) => {
-            setSubmitting(true);
+            onSubmit={(data, { setSubmitting }) => {
+              setSubmitting(true);
 
 
-            console.log("submit: ", data);
-            setSubmitting(false);
-          }}
-        >
-          {({ values, isSubmitting }) => (
-            <Form>
+              console.log("submit: ", data);
+              setSubmitting(false);
+            }}
+          >
+            {({ values, isSubmitting }) => (
+              <Form>
+                <Field label="Когда" value={today} name="offerDate" type="date" component={TextFormField} />
 
-              <PlacesAutocomplete value={address} onChange={setAddress} onSelect={handleSelect} className="map-input">
-                {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
-                  <div>
-                    <p>Latitude: {coordinates.lat}</p>
-                    <p>Longitude: {coordinates.lng}</p>
+                <div>
+                  <Field label="С" value="12:30" name="startTime" type="time" component={TextFormField} />
+                  <Field label="До" value="13:30" name="endTime" type="time" component={TextFormField} />
+                </div>
 
-                    <input {...getInputProps({ placeholder: "Адрес.." })} className="map-input"/>
-                    <div>
-                      {loading ? <div>...loading</div> : null}
+                <Field label="Название Организации" name="recruter" component={TextFormField} />
+                <Grid container direction="row" justify="flex-start" alignItems="center">
+                  <Typography variant="h6"> Требуется паспорт:</Typography>
+                  <Field name="needDocuments" type="checkbox" text="Требуются документы?" as={Checkbox} />
+                </Grid>
+                <br></br>
+                <Grid container justify="flex-end">
+                <Button disabled={isSubmitting} onClick={handleConfirmClick} variant="contained" color="primary">Confirm</Button>
+                <Button onClick={handleGetClick} variant="contained" color="secondary">Reset</Button>
+                </Grid>
+                <pre>
+                  {JSON.stringify({ ...values, coordinates }, null, 2)}
+                </pre>
+              </Form>
+            )}</Formik>
+        </div>
+        <div className="form-right">
 
-                      {suggestions.map((suggestion) => {
-                        return <div {...getSuggestionItemProps(suggestion)}>
-                          {suggestion.description}
-                        </div>
-                      })}
-                    </div>
-                  </div>
-                )}
-              </PlacesAutocomplete>
-              
-              <Field label="Когда" value={today} name="offerDate" type="date" component={TextFormField} />
-
+          <PlacesAutocomplete value={address} onChange={setAddress} onSelect={handleSelect} className="map-input">
+            {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
               <div>
-                <Field label="С" value="12:30" name="startTime" type="time" component={TextFormField} />
-                <Field label="До" value="13:30" name="endTime" type="time" component={TextFormField} />
-              </div>
+                <input {...getInputProps({ placeholder: "Адрес.." })} className="map-input" />
+                <div>
+                  {loading ? <div>...loading</div> : null}
 
-              <Field label="Название Организации" name="recruter" component={TextFormField} />
-              <Grid container direction="row" justify="flex-start" alignItems="center">
-                <Typography variant="h6"> Требуется паспорт:</Typography>
-                <Field name="needDocuments" type="checkbox" text="Требуются документы?" as={Checkbox} />
-              </Grid>
-              <br></br>
-              <Button disabled={isSubmitting} onClick={handleConfirmClick}>Confirm</Button>
-              <button onClick={handleGetClick}>Get Some</button>
-              <pre>
-                {JSON.stringify({...values, coordinates}, null, 2)}
-              </pre>
-            </Form>
-          )}</Formik>
+                  {suggestions.map((suggestion) => {
+                    const className = suggestion.active
+                      ? 'suggestion-item--active'
+                      : 'suggestion-item';
+                    return <div {...getSuggestionItemProps(suggestion, {
+                      className
+                    })}>
+                      {suggestion.description}
+                    </div>
+                  })}
+                </div>
+              </div>
+            )}
+          </PlacesAutocomplete>
+        </div>
       </Grid>
     </Container>
   );
