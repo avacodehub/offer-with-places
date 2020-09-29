@@ -1,8 +1,4 @@
 import React from "react";
-import PlacesAutocomplete, {
-  geocodeByAddress,
-  getLatLng,
-} from "react-places-autocomplete";
 import { Formik, Field, Form } from "formik";
 import {
   Button,
@@ -10,135 +6,96 @@ import {
   Container,
   Typography,
   Grid,
+  Box,
 } from "@material-ui/core";
 import TextFormField from "./components/TextFormField";
 import * as yup from "yup";
+import MapComponent from "./components/MapComponent";
+import { LocationField } from "./components/LocationField";
 
 const validationSchema = yup.object({
   recruter: yup.string().required().max(20),
+  payment: yup.string().required(),
+  address: yup.string().required(),
 });
 
 function App() {
   const today = new Date().toISOString().substr(0, 10);
+  const now = "13:00";
 
   const initialValues = {
     recruter: "",
     offerDate: today,
-    startTime: today,
-    endTime: today,
+    startTime: now,
+    endTime: "14:00",
     needPassport: false,
     needDocuments: false,
     needCostume: false,
     payment: "",
     comment: "",
-  };
-
-  const [address, setAddress] = React.useState("");
-  const [coordinates, setCoordinates] = React.useState({
-    lat: null,
-    lng: null,
-  });
-  const handleSelect = async (value) => {
-    const results = await geocodeByAddress(value);
-    const latLng = await getLatLng(results[0]);
-    setAddress(value);
-    setCoordinates(latLng);
-  };
-
-  const handleGetClick = () => {
-    fetch(process.env.REACT_APP_SERVER_GET)
-      //fetch("http://82.140.235.121:13254")
-      .then((res) => {
-        if (res.ok) {
-          console.log("Success");
-        } else {
-          console.log("Not Successful");
-        }
-        res.json();
-      })
-      .then((data) => console.log(data))
-      .catch((error) => console.log(error));
-  };
-
-  const handleConfirmClick = () => {
-    fetch(process.env.REACT_APP_SERVER_POST, {
-      //fetch("http://82.140.235.121:13254", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      },
-      body: JSON.stringify({
-        name: "user1",
-        lat: coordinates.lat,
-        lng: coordinates.lng,
-      }),
-    })
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => console.log(data));
+    address: "",
+    lat: 55.822311,
+    lng: 37.641621,
   };
 
   return (
     <Container>
       <Typography variant="h3">Новый оффер</Typography>
-      <Grid
-        container
-        direction="row"
-        justify="space-around"
-        alignItems="flex-start"
+      <Formik
+        validateOnChange={true}
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={(data, { setSubmitting }) => {
+          setSubmitting(true);
+          fetch(process.env.REACT_APP_SERVER_POST, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            },
+            body: JSON.stringify({
+              ...data,
+            }),
+          })
+            .then((res) => {
+              return res.json();
+            })
+            .then((data) => console.log(data))
+            .catch((error) => console.log(error));
+          console.log("submit: ", data);
+          setSubmitting(false);
+        }}
       >
-        <div className="form-left">
-          <Formik
-            validateOnChange={true}
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={(data, { setSubmitting }) => {
-              setSubmitting(true);
-              fetch(process.env.REACT_APP_SERVER_POST, {
-                method: "POST",
-                headers: {
-                  "Content-Type":
-                    "application/x-www-form-urlencoded;charset=UTF-8",
-                },
-                body: JSON.stringify({
-                  ...data,
-                  address: address,
-                  lat: coordinates.lat,
-                  lng: coordinates.lng,
-                }),
-              })
-                .then((res) => {
-                  return res.json();
-                })
-                .then((data) => console.log(data));
-              console.log("submit: ", data);
-              setSubmitting(false);
-            }}
-          >
-            {({ values, isSubmitting }) => (
-              <Form>
-                <Field
-                  label="Когда"
-                  name="offerDate"
-                  type="date"
-                  component={TextFormField}
-                />
-
-                <div>
-                  <Field
-                    label="С"
-                    name="startTime"
-                    type="time"
-                    component={TextFormField}
-                  />
-                  <Field
-                    label="До"
-                    name="endTime"
-                    type="time"
-                    component={TextFormField}
-                  />
-                </div>
+        {({ values, isSubmitting }) => (
+          <Form>
+            <Box display="flex" flexWrap="wrap" justifyContent="space-around">
+              <Box width="400px" justifySelf="flex-start">
+                <Grid container spacing={4}>
+                  <Grid item xs={7}>
+                    <Field
+                      label="Дата"
+                      name="offerDate"
+                      type="date"
+                      component={TextFormField}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={5}>
+                    <Field
+                      label="С"
+                      name="startTime"
+                      type="time"
+                      component={TextFormField}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <Field
+                      label="До"
+                      name="endTime"
+                      type="time"
+                      component={TextFormField}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                </Grid>
                 <Field
                   label="Оплата"
                   name="payment"
@@ -149,98 +106,64 @@ function App() {
                   name="recruter"
                   component={TextFormField}
                 />
-                <Grid
-                  container
-                  direction="row"
-                  justify="flex-start"
-                  alignItems="center"
-                >
-                  <Typography variant="h6"> Требуется паспорт:</Typography>
+                <Grid container direction="row" alignItems="center">
+                  <Grid item xs={8}>
+                    <Typography variant="h6"> Требуется паспорт:</Typography>
+                  </Grid>
                   <Field name="needPassport" type="checkbox" as={Checkbox} />
                 </Grid>
-                <Grid
-                  container
-                  direction="row"
-                  justify="flex-start"
-                  alignItems="center"
-                >
-                  <Typography variant="h6"> Другие документы:</Typography>
+                <Grid container direction="row" alignItems="center">
+                  <Grid item xs={8}>
+                    <Typography variant="h6"> Другие документы:</Typography>
+                  </Grid>
                   <Field name="needDocuments" type="checkbox" as={Checkbox} />
                 </Grid>
-                <Grid
-                  container
-                  direction="row"
-                  justify="flex-start"
-                  alignItems="center"
-                >
-                  <Typography variant="h6">Особый внешний вид:</Typography>
+                <Grid container direction="row" alignItems="center">
+                  <Grid item xs={8}>
+                    <Typography variant="h6">Особый внешний вид:</Typography>
+                  </Grid>
                   <Field name="needCostume" type="checkbox" as={Checkbox} />
                 </Grid>
                 <Field
                   label="Комментарий"
                   name="comment"
+                  multiline
+                  rowsMax={4}
                   component={TextFormField}
                 />
-                <br></br>
-                <Grid container justify="flex-end">
-                  <Button
-                    disabled={isSubmitting}
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                  >
-                    Confirm
-                  </Button>
-                  <Button type="reset" variant="contained" color="secondary">
-                    Reset
-                  </Button>
-                </Grid>
-                <pre>{JSON.stringify({ ...values, coordinates }, null, 2)}</pre>
-              </Form>
-            )}
-          </Formik>
-        </div>
-        <div className="form-right">
-          <PlacesAutocomplete
-            value={address}
-            onChange={setAddress}
-            onSelect={handleSelect}
-            className="map-input"
-          >
-            {({
-              getInputProps,
-              suggestions,
-              getSuggestionItemProps,
-              loading,
-            }) => (
-              <div>
-                <input
-                  {...getInputProps({ placeholder: "Адрес.." })}
-                  className="map-input"
-                />
-                <div>
-                  {loading ? <div>...loading</div> : null}
-
-                  {suggestions.map((suggestion) => {
-                    const className = suggestion.active
-                      ? "suggestion-item--active"
-                      : "suggestion-item";
-                    return (
-                      <div
-                        {...getSuggestionItemProps(suggestion, {
-                          className,
-                        })}
-                      >
-                        {suggestion.description}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </PlacesAutocomplete>
-        </div>
-      </Grid>
+              </Box>
+              <Box display="flex" justifyContent="center" m={3}>
+                <Box width="500px">
+                  <Field name="address" component={LocationField} />
+                  <Field name="map" component={MapComponent} />
+                </Box>
+              </Box>
+            </Box>
+            <Box display="flex" justifyContent="space-around">
+              <Box display="flex" m="auto">
+                <Button
+                  disabled={isSubmitting}
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                >
+                  Confirm
+                </Button>
+                <Button
+                  type="reset"
+                  variant="contained"
+                  color="secondary"
+                  style={{ marginLeft: 10 }}
+                >
+                  Reset
+                </Button>
+              </Box>
+              <Box width="500px"></Box>
+            </Box>
+            {/* <pre>{JSON.stringify({ ...values }, null, 2)}</pre> */}
+          </Form>
+        )}
+      </Formik>
     </Container>
   );
 }
