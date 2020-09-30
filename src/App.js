@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { Formik, Field, Form } from "formik";
 import {
   Button,
@@ -12,6 +12,7 @@ import TextFormField from "./components/TextFormField";
 import * as yup from "yup";
 import MapComponent from "./components/MapComponent";
 import { LocationField } from "./components/LocationField";
+import Notification from './components/Notification'
 
 const validationSchema = yup.object({
   recruter: yup.string().required().max(20),
@@ -38,6 +39,8 @@ function App() {
     lng: 37.641621,
   };
 
+  const [notify, setNotify] = useState(false)
+
   return (
     <Container>
       <Typography variant="h3">Новый оффер</Typography>
@@ -45,9 +48,9 @@ function App() {
         validateOnChange={true}
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={(data, { setSubmitting }) => {
+        onSubmit={(data, { setSubmitting, resetForm }) => {
           setSubmitting(true);
-          fetch(process.env.REACT_APP_SERVER_POST, {
+          fetch(process.env.REACT_APP_SERVER_POST2, {
             method: "POST",
             headers: {
               "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -59,14 +62,20 @@ function App() {
             .then((res) => {
               return res.json();
             })
-            .then((data) => console.log(data))
+            .then((data) => {
+              console.log(data)
+          setNotify(true)
+              
+            })
             .catch((error) => console.log(error));
           console.log("submit: ", data);
           setSubmitting(false);
+          resetForm();
         }}
       >
         {({ values, isSubmitting }) => (
           <Form>
+            <Notification notify={notify} setNotify={setNotify}/>
             <Box display="flex" flexWrap="wrap" justifyContent="space-around">
               <Box width="400px" justifySelf="flex-start">
                 <Grid container spacing={4}>
@@ -147,7 +156,7 @@ function App() {
                   variant="contained"
                   color="primary"
                 >
-                  Confirm
+                  Создать
                 </Button>
                 <Button
                   type="reset"
@@ -155,7 +164,7 @@ function App() {
                   color="secondary"
                   style={{ marginLeft: 10 }}
                 >
-                  Reset
+                  Очистить
                 </Button>
               </Box>
               <Box width="500px"></Box>

@@ -16,7 +16,6 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-geosuggest": "^2.14.0",
-    "react-places-autocomplete": "^7.3.0",
     "react-scripts": "3.4.3",
     "yup": "^0.29.3"
   },
