@@ -8,11 +8,11 @@ const Notification = (props) => {
     }, 5000)
   }
   return (
-    <div>
+    <>
       {props.notify ? (
         <div className="notification">Оффер создан!</div>
       ) : null}
-    </div>
+    </>
   );
 };
 
