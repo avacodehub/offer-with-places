@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState, useRef } from "react";
 import { Formik, Field, Form } from "formik";
 import {
   Button,
@@ -12,7 +12,7 @@ import TextFormField from "./components/TextFormField";
 import * as yup from "yup";
 import MapComponent from "./components/MapComponent";
 import { LocationField } from "./components/LocationField";
-import Notification from './components/Notification'
+import Notification from "./components/Notification";
 
 const validationSchema = yup.object({
   recruter: yup.string().required().max(20),
@@ -35,11 +35,14 @@ function App() {
     payment: "",
     comment: "",
     address: "",
-    lat: 55.822311,
-    lng: 37.641621,
+    lat: 55.822348,
+    lng: 37.6416,
   };
 
-  const [notify, setNotify] = useState(false)
+  const [notify, setNotify] = useState(false);
+
+  //required to clear field, used in LocationField->Geosuggest component
+  const locationfieldRef = useRef(null);
 
   return (
     <Container>
@@ -50,7 +53,7 @@ function App() {
         validationSchema={validationSchema}
         onSubmit={(data, { setSubmitting, resetForm }) => {
           setSubmitting(true);
-          fetch(process.env.REACT_APP_SERVER_POST2, {
+          fetch("https://reqres.in/api/users", {
             method: "POST",
             headers: {
               "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -63,19 +66,19 @@ function App() {
               return res.json();
             })
             .then((data) => {
-              console.log(data)
-          setNotify(true)
-              
+              console.log(data);
+              setNotify(true);
             })
             .catch((error) => console.log(error));
           console.log("submit: ", data);
           setSubmitting(false);
           resetForm();
+          locationfieldRef.current.clear();
         }}
       >
         {({ values, isSubmitting }) => (
           <Form>
-            <Notification notify={notify} setNotify={setNotify}/>
+            <Notification notify={notify} setNotify={setNotify} />
             <Box display="flex" flexWrap="wrap" justifyContent="space-around">
               <Box width="400px" justifySelf="flex-start">
                 <Grid container spacing={4}>
@@ -143,7 +146,11 @@ function App() {
               </Box>
               <Box display="flex" justifyContent="center" m={3}>
                 <Box width="500px">
-                  <Field name="address" component={LocationField} />
+                  <Field
+                    name="address"
+                    locationfieldRef={locationfieldRef}
+                    component={LocationField}
+                  />
                   <Field name="map" component={MapComponent} />
                 </Box>
               </Box>
